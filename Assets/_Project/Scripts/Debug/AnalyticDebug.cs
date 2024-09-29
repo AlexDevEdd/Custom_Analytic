@@ -2,50 +2,43 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 using Zenject;
+using Random = System.Random;
 
 namespace Debug
 {
     public class AnalyticDebug : MonoBehaviour
     {
-        private IAnalyticSystem _analyticSystem;
+        [SerializeField]
+        private EventDataDebug _eventDataDebug;
         
-        private int _currentLevel;
-        private bool _isZero = true;
+        [SerializeField]
+        private int _eventsCount;
+        
+        private AnalyticEventService _analyticEventService;
+        private Random _random;
         
         [Inject]
-        public void Construct(IAnalyticSystem analyticSystem)
+        public void Construct(AnalyticEventService analyticEventService)
         {
-            _analyticSystem = analyticSystem;
+            _analyticEventService = analyticEventService;
+            _random = new Random();
         }
         
         [Button]
-        public void SendSingleEvent(AnalyticEventType type, string data)
+        public void SendSingleEvent()
         {
-            _analyticSystem.SendEvent(type, data);
+            var randomIndex = _random.Next(0, _eventDataDebug.Datas.Length);
+            _analyticEventService.TrackEvent(_eventDataDebug.Datas[randomIndex].Type, _eventDataDebug.Datas[randomIndex].Data);
         }
         
         [Button]
-        public void SendMultipleEvents(int eventsCount)
+        public void SendMultipleEvents()
         {
-            _currentLevel = 1;
-            
-            for (int i = 0; i < eventsCount; i++)
+            for (int i = 0; i < _eventsCount; i++)
             {
-                var currentIndex = _isZero ? 0 : 1;
-                _isZero = !_isZero;
-                switch (currentIndex)
-                {
-                    case 0:
-                        _analyticSystem.SendEvent(AnalyticEventType.levelStart, _currentLevel);
-                        break;
-                    case 1:
-                        _analyticSystem.SendEvent(AnalyticEventType.levelFinish, _currentLevel);
-                        _currentLevel++;
-                        break;
-                }
+                var randomIndex = _random.Next(0, _eventDataDebug.Datas.Length);
+                _analyticEventService.TrackEvent(_eventDataDebug.Datas[randomIndex].Type, _eventDataDebug.Datas[randomIndex].Data);
             }
         }
-        
-        
     }
 }

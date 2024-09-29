@@ -1,7 +1,7 @@
 using System;
 using Newtonsoft.Json;
 
-namespace Analytics
+namespace Analytics.Data
 {
     [Serializable]
     public readonly struct EventData

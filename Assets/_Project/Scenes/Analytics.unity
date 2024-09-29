@@ -167,6 +167,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5206674d83eb405fb2937521e294abab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _eventDataDebug: {fileID: 11400000, guid: f0d8d76da44956042a9cc2bc92e86e37, type: 2}
+  _eventsCount: 30
 --- !u!1 &1610154145
 GameObject:
   m_ObjectHideFlags: 0

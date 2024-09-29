@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 09e114b85e7b497fb836a3fd8eae2cef, type: 3}
+  m_Name: EventDataDebug
+  m_EditorClassIdentifier: 
+  <Datas>k__BackingField:
+  - <Type>k__BackingField: startLevel
+    <Data>k__BackingField: 'level: 1'
+  - <Type>k__BackingField: startLevel
+    <Data>k__BackingField: 'level: 2'
+  - <Type>k__BackingField: startLevel
+    <Data>k__BackingField: 'level: 3'
+  - <Type>k__BackingField: startLevel
+    <Data>k__BackingField: 'level: 4'
+  - <Type>k__BackingField: startLevel
+    <Data>k__BackingField: 'level: 5'
+  - <Type>k__BackingField: startLevel
+    <Data>k__BackingField: 'level: 6'
+  - <Type>k__BackingField: startLevel
+    <Data>k__BackingField: 'level: 7'
+  - <Type>k__BackingField: startLevel
+    <Data>k__BackingField: 'level: 8'
+  - <Type>k__BackingField: startLevel
+    <Data>k__BackingField: 'level: 9'
+  - <Type>k__BackingField: startLevel
+    <Data>k__BackingField: 'level: 10'
+  - <Type>k__BackingField: finishLevel
+    <Data>k__BackingField: 'level: 1'
+  - <Type>k__BackingField: finishLevel
+    <Data>k__BackingField: 'level: 2'
+  - <Type>k__BackingField: finishLevel
+    <Data>k__BackingField: 'level: 3'
+  - <Type>k__BackingField: finishLevel
+    <Data>k__BackingField: 'level: 4'
+  - <Type>k__BackingField: finishLevel
+    <Data>k__BackingField: 'level: 5'
+  - <Type>k__BackingField: finishLevel
+    <Data>k__BackingField: 'level: 6'
+  - <Type>k__BackingField: finishLevel
+    <Data>k__BackingField: 'level: 7'
+  - <Type>k__BackingField: finishLevel
+    <Data>k__BackingField: 'level: 8'
+  - <Type>k__BackingField: finishLevel
+    <Data>k__BackingField: 'level: 9'
+  - <Type>k__BackingField: finishLevel
+    <Data>k__BackingField: 'level: 10'

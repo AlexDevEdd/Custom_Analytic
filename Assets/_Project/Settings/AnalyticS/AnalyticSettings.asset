@@ -13,5 +13,6 @@ MonoBehaviour:
   m_Name: AnalyticSettings
   m_EditorClassIdentifier: 
   <IsEnable>k__BackingField: 1
-  <ServerUrl>k__BackingField: 
+  <ServerUrl>k__BackingField: https://webhook.site/74009741-c31f-416f-af0d-e3ba3b287898
+  <BufferSize>k__BackingField: 15
   <CooldownBeforeSend>k__BackingField: 5
