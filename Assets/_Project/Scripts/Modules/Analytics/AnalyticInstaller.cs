@@ -8,18 +8,39 @@ namespace Analytics
     public sealed class AnalyticInstaller : MonoInstaller
     {
         [SerializeField] 
+        private string _saveKey;
+
+        [SerializeField] 
         private AnalyticSettings _analyticSettings;
-        
+
         public override void InstallBindings()
         {
-            BindAnalyticSystem();
+            BindAnalyticsRepository();
+            BindAnalyticsClient();
+            BindAnalyticsStorage();
         }
         
-        private void BindAnalyticSystem()
+        private void BindAnalyticsRepository()
         {
-            Container.BindInterfacesAndSelfTo<AnalyticEventService>()
+            Container.BindInterfacesAndSelfTo<AnalyticsRepository>()
                 .AsSingle()
                 .WithArguments(_analyticSettings)
+                .NonLazy();
+        }
+        
+        private void BindAnalyticsClient()
+        {
+            Container.BindInterfacesAndSelfTo<AnalyticsClient>()
+                .AsSingle()
+                .WithArguments(_analyticSettings)
+                .NonLazy();
+        }
+        
+        private void BindAnalyticsStorage()
+        {
+            Container.BindInterfacesAndSelfTo<AnalyticsStorage>()
+                .AsSingle()
+                .WithArguments(_saveKey)
                 .NonLazy();
         }
     }

@@ -15,6 +15,12 @@ namespace Analytics
         public int BufferSize { get; private set; }
         
         [field:SerializeField]
+        public float PingInterval { get; private set; }
+        
+        [field:SerializeField]
         public float CooldownBeforeSend { get; private set; }
+        
+        [field:SerializeField]
+        public int RequestTimeout { get; private set; }
     }
 }

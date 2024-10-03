@@ -1,14 +1,14 @@
 using System;
 using Newtonsoft.Json;
 
-namespace Analytics.Data
+namespace Analytics
 {
     [Serializable]
     public readonly struct EventData
     {
         [JsonProperty("type")]
         public readonly string Type;
-
+    
         [JsonProperty("data")]
         public readonly string Data;
         
@@ -17,5 +17,12 @@ namespace Analytics.Data
             Type = type;
             Data = data;
         }
+    }
+    
+    [Serializable]
+    public class EventsDataContainer
+    {
+        [JsonProperty("events")] 
+        public EventData[] EventsDatas;
     }
 }

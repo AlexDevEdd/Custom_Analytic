@@ -1,16 +1,44 @@
-﻿using System;
+using System;
+using System.Collections;
 using System.IO;
 using Cysharp.Threading.Tasks;
+using JetBrains.Annotations;
+using Newtonsoft.Json;
 using UnityEngine;
 using Utils;
 
 namespace Analytics
 {
-    internal class StreamingAssetsDataStorage : IDataStorage
+    [UsedImplicitly]
+    public sealed class AnalyticsStorage
     {
+        private readonly string _saveKey;
         private bool _isInProgressNow;
 
-        public async UniTask<string> ReadAsync<TData>(string key)
+        public AnalyticsStorage(string saveKey)
+        {
+            _saveKey = saveKey;
+        }
+
+        public async UniTask Save(IEnumerable eventData)
+        {
+            var serializedData = JsonConvert.SerializeObject(new {events = eventData});
+            
+            if(!serializedData.IsNullOrEmpty())
+                await WriteAsync(_saveKey, serializedData);
+        }
+
+        public async UniTask<EventsDataContainer> Load()
+        {
+            var jsonData = await ReadAsync(_saveKey);
+            if (jsonData.IsNullOrEmpty())
+                return new EventsDataContainer();
+            
+            var eventsData = JsonConvert.DeserializeObject<EventsDataContainer>(jsonData);
+            return eventsData;
+        }
+
+        private async UniTask<string> ReadAsync(string key)
         {
             var path = BuildPath(key);
             if (!File.Exists(path))
@@ -30,7 +58,7 @@ namespace Analytics
             }
         }
 
-        public async UniTask WriteAsync(string key, string data)
+        private async UniTask WriteAsync(string key, string data)
         {
             if(_isInProgressNow) return;
             
@@ -50,18 +78,6 @@ namespace Analytics
                 _isInProgressNow = false;
                 throw new ArgumentException($"Something went wrong : {e}");
             }
-        }
-
-        public void Remove(string key)
-        {
-            var path = BuildPath(key);
-            if (!File.Exists(path))
-            {
-                Log.ColorLogDebugOnly($"First save for {key} haven't been yet", ColorType.Orange, LogStyle.Warning);
-                return;
-            }
-        
-            File.Delete(path);
         }
         
         private string BuildPath(string key)
