@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.IO;
 using Cysharp.Threading.Tasks;
 using JetBrains.Annotations;
@@ -13,29 +12,36 @@ namespace Analytics
     public sealed class AnalyticsStorage
     {
         private readonly string _saveKey;
-        private bool _isInProgressNow;
-
+        
         public AnalyticsStorage(string saveKey)
         {
             _saveKey = saveKey;
         }
 
-        public async UniTask Save(IEnumerable eventData)
+        public async UniTask SaveAsync(CircularArrayQueue<EventData> eventData)
         {
-            var serializedData = JsonConvert.SerializeObject(new {events = eventData});
+            var arraySegment = eventData.Tail > 0 
+                ? new ArraySegment<EventData>(eventData.Items, eventData.Head, eventData.Tail)
+                : new ArraySegment<EventData>(eventData.Items, 0, 0);
             
+            var serializedData = JsonConvert.SerializeObject(arraySegment);
             if(!serializedData.IsNullOrEmpty())
                 await WriteAsync(_saveKey, serializedData);
         }
 
-        public async UniTask<EventsDataContainer> Load()
+        public async UniTask<CircularArrayQueue<EventData>> LoadAsync()
         {
             var jsonData = await ReadAsync(_saveKey);
             if (jsonData.IsNullOrEmpty())
-                return new EventsDataContainer();
+                return new CircularArrayQueue<EventData>();
             
-            var eventsData = JsonConvert.DeserializeObject<EventsDataContainer>(jsonData);
-            return eventsData;
+            var eventsData = JsonConvert.DeserializeObject<EventData[]>(jsonData);
+            var data = new CircularArrayQueue<EventData>();
+            for (var i = 0; i < eventsData.Length; i++)
+            {
+                data.Enqueue(new EventData(eventsData[i].Type, eventsData[i].Data));
+            }
+            return data;
         }
 
         private async UniTask<string> ReadAsync(string key)
@@ -60,22 +66,17 @@ namespace Analytics
 
         private async UniTask WriteAsync(string key, string data)
         {
-            if(_isInProgressNow) return;
-            
             var path = BuildPath(key);
             
             try
             {
-                _isInProgressNow = true;
                 if (File.Exists(path)) 
                     File.Delete(path);
                 
                 await File.WriteAllTextAsync(path, data);
-                _isInProgressNow = false;
             }
             catch (Exception e)
             {
-                _isInProgressNow = false;
                 throw new ArgumentException($"Something went wrong : {e}");
             }
         }

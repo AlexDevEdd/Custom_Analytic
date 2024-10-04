@@ -1,63 +1,113 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using Sirenix.OdinInspector;
 
 namespace Utils
 {
-    public class CircularArrayQueue<T>
+    [Serializable]
+    public class CircularArrayQueue<T> : IEnumerable<T>
     {
         private const int INITIAL_CAPACITY = 16;
         
-        private T[] _items = new T[INITIAL_CAPACITY];
-        private int _count = 0;
+        [ShowInInspector]
+        public T[] Items { get; private set; } = new T[INITIAL_CAPACITY];
+        
+        [ShowInInspector]
+        public int Count { get; private set; }
         
         public int Head { get; private set; }
         public int Tail { get; private set; } = -1;
 
         public void Enqueue(T item)
         {
-            if (_count == _items.Length)
+            if (Count == Items.Length)
             {
                 Resize();
             }
 
-            Tail = (Tail + 1) % _items.Length;
-            _items[Tail] = item;
-            _count++;
+            Tail = (Tail + 1) % Items.Length;
+            Items[Tail] = item;
+            Count++;
         }
 
         public T Dequeue()
         {
-            if (_count == 0)
+            if (Count == 0)
             {
                 throw new InvalidOperationException("Queue is empty");
             }
 
-            var item = _items[Head];
-            Head = (Head + 1) % _items.Length;
-            _count--;
+            var item = Items[Head];
+            Head = (Head + 1) % Items.Length;
+            Count--;
             return item;
         }
 
         public T Peek()
         {
-            if (_count == 0)
+            if (Count == 0)
             {
                 throw new InvalidOperationException("Queue is empty");
             }
 
-            return _items[Head];
+            return Items[Head];
+        }
+
+        public void RemoveRange(int startIndex, int endIndex)
+        {
+            if (startIndex < 0 || endIndex >= Count || startIndex > endIndex)
+            {
+                throw new ArgumentOutOfRangeException();
+            }
+            
+            if (startIndex == 0 && endIndex == Count - 1)
+            {
+                Clear();
+                return;
+            }
+            
+            var countToRemove = endIndex - startIndex + 1;
+            for (var i = endIndex + 1; i < Count; i++)
+            {
+                Items[((i - countToRemove) + Head) % Items.Length] = Items[(i + Head) % Items.Length];
+            }
+
+            Count -= countToRemove;
+            Tail = (Tail - countToRemove + Items.Length) % Items.Length;
+        }
+
+        public void Clear()
+        {
+            Head = 0;
+            Tail = -1;
+            Count = 0;
         }
 
         private void Resize()
         {
-            var newItems = new T[_items.Length * 2];
-            for (int i = 0; i < _count; i++)
+            var newItems = new T[Items.Length * 2];
+            for (var i = 0; i < Count; i++)
             {
-                newItems[i] = _items[(Head + i) % _items.Length];
+                newItems[i] = Items[(Head + i) % Items.Length];
             }
 
-            _items = newItems;
+            Items = newItems;
             Head = 0;
-            Tail = _count - 1;
+            Tail = Count - 1;
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            for (var i = Head; i < Head + Count; i++)
+            {
+                yield return Items[i % Items.Length];
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

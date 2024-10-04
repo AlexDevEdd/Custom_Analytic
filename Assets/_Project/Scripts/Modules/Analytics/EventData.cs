@@ -18,11 +18,4 @@ namespace Analytics
             Data = data;
         }
     }
-    
-    [Serializable]
-    public class EventsDataContainer
-    {
-        [JsonProperty("events")] 
-        public EventData[] EventsDatas;
-    }
 }

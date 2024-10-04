@@ -3,7 +3,7 @@
 namespace Analytics
 {
     [CreateAssetMenu(fileName = "AnalyticSettings", menuName = "Configs/AnalyticSettings")]
-    public sealed class AnalyticSettings : ScriptableObject
+    public sealed class AnalyticsSettings : ScriptableObject
     {
         [field: SerializeField]
         public bool IsEnable { get; private set; }

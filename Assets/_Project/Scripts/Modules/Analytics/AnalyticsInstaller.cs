@@ -1,17 +1,18 @@
 ﻿using JetBrains.Annotations;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Zenject;
 
 namespace Analytics
 {
     [UsedImplicitly]
-    public sealed class AnalyticInstaller : MonoInstaller
+    public sealed class AnalyticsInstaller : MonoInstaller
     {
         [SerializeField] 
         private string _saveKey;
 
-        [SerializeField] 
-        private AnalyticSettings _analyticSettings;
+        [FormerlySerializedAs("_analyticSettings")] [SerializeField] 
+        private AnalyticsSettings _analyticsSettings;
 
         public override void InstallBindings()
         {
@@ -24,7 +25,7 @@ namespace Analytics
         {
             Container.BindInterfacesAndSelfTo<AnalyticsRepository>()
                 .AsSingle()
-                .WithArguments(_analyticSettings)
+                .WithArguments(_analyticsSettings)
                 .NonLazy();
         }
         
@@ -32,7 +33,7 @@ namespace Analytics
         {
             Container.BindInterfacesAndSelfTo<AnalyticsClient>()
                 .AsSingle()
-                .WithArguments(_analyticSettings)
+                .WithArguments(_analyticsSettings)
                 .NonLazy();
         }
         

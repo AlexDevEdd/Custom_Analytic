@@ -11,17 +11,17 @@ namespace Analytics
     [UsedImplicitly]
     public class AnalyticsRepository : IInitializable, IDisposable
     {
-        private readonly CircularLinkedList<EventData> _events = new ();
+        private CircularArrayQueue<EventData> _events;
         
         private readonly AnalyticsClient _analyticsClient;
         private readonly AnalyticsStorage _analyticsStorage;
-        
         private readonly float _cooldownBeforeSend;
+        
         private IDisposable _cooldownDisposable;
         private CancellationTokenSource _waitFirsEventToken;
         
         public AnalyticsRepository(AnalyticsClient analyticsClient, AnalyticsStorage analyticsStorage,
-            AnalyticSettings settings)
+            AnalyticsSettings settings)
         {
             _analyticsClient = analyticsClient;
             _analyticsStorage = analyticsStorage;
@@ -30,27 +30,25 @@ namespace Analytics
         
         async void IInitializable.Initialize()
         {
-           WaitFirsEventAsync().Forget();
-           
-           var data = await _analyticsStorage.Load();
-           if (data.EventsDatas?.Length != 0)
-           {
-                 await _analyticsClient.TrySendEventsAsync(data.EventsDatas);
-                 _analyticsStorage.Save(_events).Forget();
-           }
+            await _analyticsClient.Init();
+            _events = await _analyticsStorage.LoadAsync();
+
+            if (_events.Count!= 0) 
+               TrySendEventsAsync().Forget();
+            
+            WaitFirsEventAsync().Forget();
         }
         
         public void TrackEvent(string type, string data)
         {
-            _events.Add(new EventData(type, data));
-            _analyticsStorage.Save(_events).Forget();
+            _events.Enqueue(new EventData(type, data));
+            _analyticsStorage.SaveAsync(_events).Forget();
         }
 
         private async UniTaskVoid WaitFirsEventAsync()
         {
             _waitFirsEventToken = new CancellationTokenSource();
             await UniTask.WaitUntil(() => _events.Count != 0, cancellationToken: _waitFirsEventToken.Token);
-            _waitFirsEventToken?.Dispose();
             InitializeCooldown();
         }
         
@@ -66,12 +64,18 @@ namespace Analytics
 
         private async UniTaskVoid TrySendEventsAsync()
         {
-           var result = await _analyticsClient.TrySendEventsAsync(_events.ToArray());
-           if (result.isSuccess)
-           {
-               _events.Delete(result.startIndex, result.endIndex);
-               _analyticsStorage.Save(_events).Forget();
-           }
+            var startIndex = _events.Head;
+            var endIndex = _events.Tail;
+            
+            var isSuccess = await _analyticsClient.TrySendEventsAsync(_events);
+            if (isSuccess) 
+                UpdateEvents(_events, startIndex, endIndex);
+        }
+
+        private void UpdateEvents(CircularArrayQueue<EventData> eventDatas, in int startIndex, in int endIndex)
+        {
+            _events.RemoveRange(startIndex, endIndex);
+            _analyticsStorage.SaveAsync(eventDatas).Forget();
         }
 
         void IDisposable.Dispose()

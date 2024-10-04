@@ -5,12 +5,11 @@ using Newtonsoft.Json;
 using UniRx;
 using UnityEngine.Networking;
 using Utils;
-using Zenject;
 
 namespace Analytics
 {
     [UsedImplicitly]
-    public sealed class AnalyticsClient : IInitializable, IDisposable
+    public sealed class AnalyticsClient : IDisposable
     {
         private readonly string _serverUrl;
         private readonly bool _isAvailable;
@@ -20,7 +19,7 @@ namespace Analytics
         
         private CompositeDisposable _disposable;
         
-        public AnalyticsClient(AnalyticSettings settings)
+        public AnalyticsClient(AnalyticsSettings settings)
         {
             _isAvailable = settings.IsEnable && !settings.ServerUrl.IsNullOrEmpty();
             
@@ -29,12 +28,52 @@ namespace Analytics
             _requestTimeout = settings.RequestTimeout;
         }
         
-        void IInitializable.Initialize()
+        public async UniTask Init()
         {
-            // if (_isAvailable)
-            //     InitializePingCheck();
-            //TODO: remove flag
-            _isConnected = true;
+            if (_isAvailable)
+            {
+                await PerformPingAsync();
+                InitializePingCheck();
+            }
+        }
+
+        public async UniTask<bool> TrySendEventsAsync(CircularArrayQueue<EventData> events)
+        {
+            if (!_isAvailable || !_isConnected)
+                return false;
+            
+            try
+            {
+                return await SendPostRequestAsync(events);
+            }
+            catch (Exception ex)
+            {
+                Log.ColorLogDebugOnly($"Error sending events: {ex.Message}", ColorType.Purple, LogStyle.Warning);
+                return false;
+            }
+        }
+
+        private async UniTask<bool> SendPostRequestAsync(CircularArrayQueue<EventData> eventDatas)
+        {
+            var arraySegment = new ArraySegment<EventData>(eventDatas.Items, eventDatas.Head, eventDatas.Tail);
+            
+            var message = JsonConvert.SerializeObject(new {events = arraySegment});
+            if (message.IsNullOrEmpty())
+                return false;
+
+            using var www = UnityWebRequest.Post(_serverUrl, message);
+            www.SetRequestHeader("Content-Type", "application/json");
+           
+            await www.SendWebRequest();
+                
+            if (www.result == UnityWebRequest.Result.Success && www.responseCode == 200)
+            {
+                Log.ColorLogDebugOnly($"Success POST. Status code: {www.responseCode}", ColorType.Lime);
+                return true;
+            }
+            
+            Log.ColorLogDebugOnly($"Failed to send events. Status code: {www.responseCode}", ColorType.Orange, LogStyle.Warning);
+            return false;
         }
 
         private void InitializePingCheck()
@@ -48,8 +87,8 @@ namespace Analytics
         private async void OnCheckPingAsync(long x)
         {
             try
-            {
-                _isConnected = await PerformPingAsync();
+            { 
+                await PerformPingAsync();
             }
             catch (Exception ex)
             {
@@ -65,56 +104,21 @@ namespace Analytics
             try
             {
                 await www.SendWebRequest();
-
                 if (www.result == UnityWebRequest.Result.Success)
+                {
+                    _isConnected = true;
                     return true;
+                }
                 
                 Log.ColorLogDebugOnly($"Ping failed: {www.error}", ColorType.Red, LogStyle.Warning);
+                _isConnected = false;
                 return false;
             }
             catch (UnityWebRequestException ex)
             {
                 Log.ColorLogDebugOnly($"UnityWebRequest error: {ex.Message}", ColorType.Red, LogStyle.Warning);
+                _isConnected = false;
                 return false;
-            }
-        }
-
-        private async UniTask<bool> SendPostRequestAsync(Array data)
-        {
-            var message = JsonConvert.SerializeObject(new {events = data});
-            if (message.IsNullOrEmpty())
-                return false;
-            
-            using var www = UnityWebRequest.Post(_serverUrl, message);
-            www.SetRequestHeader("Content-Type", "application/json");
-            await www.SendWebRequest();
-                
-            if (www.result == UnityWebRequest.Result.Success && www.responseCode == 200)
-            {
-                Log.ColorLogDebugOnly($"Success POST. Status code: {www.responseCode}", ColorType.Lime);
-                return true;
-            }
-            
-            Log.ColorLogDebugOnly($"Failed to send events. Status code: {www.responseCode}", ColorType.Orange, LogStyle.Warning);
-            return false;
-        }
-
-        public async UniTask<(bool isSuccess, int startIndex, int endIndex)> 
-            TrySendEventsAsync(Array events)
-        {
-            if (!_isAvailable || !_isConnected)
-                return (false, 0, 0);
-            
-            try
-            {
-                var isSuccess = await SendPostRequestAsync(events);
-                
-                return (isSuccess, 0, events.Length);
-            }
-            catch (Exception ex)
-            {
-                Log.ColorLogDebugOnly($"Error sending events: {ex.Message}", ColorType.Purple, LogStyle.Warning);
-                return (false, 0, 0);
             }
         }
 

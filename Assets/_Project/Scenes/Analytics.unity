@@ -132,7 +132,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 705910816}
-  - component: {fileID: 705910817}
+  - component: {fileID: 705910819}
   m_Layer: 0
   m_Name: <Analytic_debug>
   m_TagString: Untagged
@@ -155,7 +155,7 @@ Transform:
   m_Father: {fileID: 2024764326}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &705910817
+--- !u!114 &705910819
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -164,10 +164,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 705910815}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5206674d83eb405fb2937521e294abab, type: 3}
+  m_Script: {fileID: 11500000, guid: f0e25b40cafa4e88a32546b67b719adc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _initialArray: 0a000000140000001e00000028000000320000003c00000046000000500000005a00000064000000
+  _eventDataDebug: {fileID: 11400000, guid: f0d8d76da44956042a9cc2bc92e86e37, type: 2}
+  _eventsCount: 10
 --- !u!1 &1610154145
 GameObject:
   m_ObjectHideFlags: 0
